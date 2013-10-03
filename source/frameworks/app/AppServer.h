@@ -24,7 +24,7 @@ public:
 	};
 
 public:
-	AppServer(const char *settings_path);
+	static AppServer *init(const char *title, const char *settings_path);
 	virtual ~AppServer();
 	int run(AppClient* client);
 	//getters
@@ -38,7 +38,6 @@ private:
 	Settings mSettings;
 	AppClient *mClient;
 	GLView *mView;
-	bool mInitialized;
 	bool mRunning;
 	bool *mKeyStatus;
 };

@@ -15,8 +15,10 @@
 
 #ifdef DEBUG
 #define LOG(msg, args...) printf("[%d] "msg"\n", (int)time(NULL), ##args)
+#define LOGE(msg, args...) printf("[%d] ERROR: "msg"\n", (int)time(NULL), ##args)
 #else
 #define LOG(args...)
+#define LOGE(args...)
 #endif
 
 class AppServer;

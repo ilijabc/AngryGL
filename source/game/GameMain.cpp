@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv)
 {
-	AppServer *server = new AppServer("settings.ini");
+	AppServer *server = AppServer::init("TEST 1.0", "settings.ini");
 	GameClient *game = new GameClient(server);
 
 	server->run(game);

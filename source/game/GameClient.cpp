@@ -14,7 +14,7 @@ GameClient::GameClient(AppServer* server) : AppClient(server)
 
 GameClient::~GameClient()
 {
-	// TODO Auto-generated destructor stub
+	delete mFont;
 }
 
 void GameClient::onUpdate(float dt)
