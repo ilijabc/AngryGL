@@ -10,10 +10,11 @@
 
 #ifdef __cplusplus
 extern "C" {
-#include "iniparser/iniparser.h"
+#include "iniParser/iniparser.h"
 }
 #endif
 
+static AppServer *g_app_server = NULL;
 static AppClient *g_app_client = NULL;
 
 static void cb_key(int key, int press)
@@ -21,6 +22,10 @@ static void cb_key(int key, int press)
     if (g_app_client)
     {
         g_app_client->onKeyEvent(key, press);
+    }
+    if (g_app_server)
+    {
+    	g_app_server->setKeyStatus(key, press);
     }
     if (key == GLFW_KEY_ESC)
     {
@@ -65,12 +70,15 @@ AppServer::AppServer(const char *settings_path)
 	mClient = NULL;
 	mInitialized = false;
 	mRunning = false;
+	mKeyStatus = new bool [GLFW_KEY_LAST + 1];
 
     if (!glfwInit())
     {
         LOG("init fail");
         return;
     }
+
+    g_app_server = this;
 
     dictionary *ini = iniparser_load(settings_path);
     mSettings.width = iniparser_getint(ini, "video:width", 640);
@@ -80,8 +88,8 @@ AppServer::AppServer(const char *settings_path)
 	mSettings.audio = iniparser_getint(ini, "audio:enabled", 0);
     iniparser_freedict(ini);
 #ifdef DEBUG
-    mSettings.width = 800;
-    mSettings.height = 600;
+    mSettings.width = 400;
+    mSettings.height = 400;
     mSettings.fullscreen = 0;
     mSettings.desktop = 0;
 #endif
@@ -115,7 +123,13 @@ AppServer::AppServer(const char *settings_path)
     glfwSetMouseWheelCallback(cb_mouse_wheel);
     glfwSetWindowSizeCallback(cb_size);
     if (mSettings.fullscreen)
-        glfwEnable(GLFW_MOUSE_CURSOR);
+    {
+        //glfwEnable(GLFW_MOUSE_CURSOR);
+    }
+
+    mView = new GLView();
+    mView->setup();
+    mView->setSize(mSettings.width, mSettings.height);
 
     mInitialized = true;
 }
@@ -124,6 +138,7 @@ AppServer::~AppServer()
 {
 	glfwTerminate();
 	g_app_client = NULL;
+	delete [] mKeyStatus;
 }
 
 int AppServer::run(AppClient *client)
@@ -147,7 +162,7 @@ int AppServer::run(AppClient *client)
         //
         glClearColor(0.2, 0.2, 0.2, 1.0);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-        mClient->onDraw();
+        mClient->onDraw(mView);
         glfwSwapBuffers();
     }
 

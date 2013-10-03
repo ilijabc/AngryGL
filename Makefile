@@ -8,6 +8,9 @@
 #    PACKAGE
 #################################################################################
 
+TARGET := mingw
+BUILD := debug
+
 #################################################################################
 # Tools
 #################################################################################
@@ -40,15 +43,13 @@ endif
 include Project.mk
 
 OUT_DIR := bin
-OBJ_DIR := $(OUT_DIR)/obj
-ONAME := $(OUT_DIR)/$(PROJECT_NAME)
+OBJ_DIR := $(OUT_DIR)/obj/$(BUILD)
+ONAME := $(OUT_DIR)/$(PROJECT_NAME)_$(BUILD)
 
 SRCS += $(PROJECT_FILES)
 INC_PATHS += $(PROJECT_PATHS)
 LIBS += $(PROJECT_LIBRARIES)
 SRC_RES += $(PROJECT_RESOURCES)
-
-TARGET := mingw
 
 #################################################################################
 # Target settings
@@ -109,7 +110,7 @@ build: info $(OBJS) $(RES)
 	@$(CPP) $(CFLAGS) -o $(ONAME) $(OBJS) $(RES) $(LIBS)
 	@echo 'Finished building target: $(ONAME)'
 
-clean:
+clean: info
 	-$(RMDIR) $(OUT_DIR)
 	@echo 'Intermediate files removed'
 

@@ -30,12 +30,17 @@ public:
 	//getters
 	Settings getSettings() const { return mSettings; }
 	AppClient *getClient() const { return mClient; }
+	inline bool getKeyStatus(int key) { return (mKeyStatus == NULL) ? false : mKeyStatus[key]; }
+	//setters
+	inline void setKeyStatus(int key, int status) { if (mKeyStatus) mKeyStatus[key] = status; }
 
 private:
 	Settings mSettings;
 	AppClient *mClient;
+	GLView *mView;
 	bool mInitialized;
 	bool mRunning;
+	bool *mKeyStatus;
 };
 
 #endif /* APPSERVER_H_ */
