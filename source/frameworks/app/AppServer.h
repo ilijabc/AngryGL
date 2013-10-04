@@ -23,6 +23,24 @@ public:
 		int audio;
 	};
 
+	enum EventType
+	{
+		eKeyEventType = 0,
+		eMousePosEventType,
+		eMouseButtonEventType,
+		eMouseWheelEventType,
+		eWindowSizeEventType
+	};
+
+private:
+	struct Event
+	{
+		Event(EventType t, int a1, int a2) : type(t), arg1(a1), arg2(a2) { }
+		EventType type;
+		int arg1;
+		int arg2;
+	};
+
 public:
 	static AppServer *init(const char *title, const char *settings_path);
 	virtual ~AppServer();
@@ -33,6 +51,8 @@ public:
 	inline bool getKeyStatus(int key) { return (mKeyStatus == NULL) ? false : mKeyStatus[key]; }
 	//setters
 	inline void setKeyStatus(int key, int status) { if (mKeyStatus) mKeyStatus[key] = status; }
+	void sendEvent(EventType type, int arg1, int arg2);
+	void close();
 
 private:
 	Settings mSettings;
@@ -40,6 +60,7 @@ private:
 	GLView *mView;
 	bool mRunning;
 	bool *mKeyStatus;
+	std::vector<Event> mEventList;
 };
 
 #endif /* APPSERVER_H_ */

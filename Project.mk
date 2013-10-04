@@ -43,3 +43,4 @@ PROJECT_PATHS := \
 
 PROJECT_LIBRARIES := \
 	prebuilt/glfw/lib-mingw/libglfw.a
+

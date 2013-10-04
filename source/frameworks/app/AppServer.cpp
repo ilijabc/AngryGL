@@ -15,56 +15,36 @@ extern "C" {
 #endif
 
 static AppServer *g_app_server = NULL;
+static GLFWmutex g_event_mutex;
 
 static void cb_key(int key, int press)
 {
 	if (g_app_server == NULL) return;
-	AppClient *client = g_app_server->getClient();
-	if (client == NULL) return;
-
-    client->onKeyEvent(key, press);
-    g_app_server->setKeyStatus(key, press);
-
-    if (key == GLFW_KEY_ESC)
-    {
-        glfwCloseWindow();
-    }
+	g_app_server->sendEvent(AppServer::eKeyEventType, key, press);
 }
 
 static void cb_mouse_pos(int x, int y)
 {
 	if (g_app_server == NULL) return;
-	AppClient *client = g_app_server->getClient();
-	if (client == NULL) return;
-
-    client->onMouseMoveEvent(x, y);
+	g_app_server->sendEvent(AppServer::eMousePosEventType, x, y);
 }
 
 static void cb_mouse_button(int button, int press)
 {
 	if (g_app_server == NULL) return;
-	AppClient *client = g_app_server->getClient();
-	if (client == NULL) return;
-
-    client->onMouseButtonEvent(button, press);
+	g_app_server->sendEvent(AppServer::eMouseButtonEventType, button, press);
 }
 
 static void cb_mouse_wheel(int wheel)
 {
 	if (g_app_server == NULL) return;
-	AppClient *client = g_app_server->getClient();
-	if (client == NULL) return;
-
-    client->onMouseWheelEvent(wheel);
+	g_app_server->sendEvent(AppServer::eMouseWheelEventType, wheel, 0);
 }
 
 static void cb_size(int width, int height)
 {
 	if (g_app_server == NULL) return;
-	AppClient *client = g_app_server->getClient();
-	if (client == NULL) return;
-
-    client->onSize(width, height);
+	g_app_server->sendEvent(AppServer::eWindowSizeEventType, width, height);
 }
 
 AppServer *AppServer::init(const char *title, const char *settings_path)
@@ -85,6 +65,7 @@ AppServer *AppServer::init(const char *title, const char *settings_path)
     g_app_server->mClient = NULL;
     g_app_server->mRunning = false;
     g_app_server->mKeyStatus = new bool [GLFW_KEY_LAST + 1];
+    g_event_mutex = glfwCreateMutex();
 
     dictionary *ini = iniparser_load(settings_path);
     g_app_server->mSettings.width = iniparser_getint(ini, "video:width", 640);
@@ -145,6 +126,7 @@ AppServer *AppServer::init(const char *title, const char *settings_path)
 
 AppServer::~AppServer()
 {
+	glfwDestroyMutex(g_event_mutex);
 	glfwTerminate();
 	delete [] mKeyStatus;
 	g_app_server = NULL;
@@ -158,15 +140,44 @@ int AppServer::run(AppClient *client)
 
     while (glfwGetWindowParam(GLFW_OPENED))
     {
-        //
-        //update
+    	//
+        // handle events
+    	//
+    	glfwLockMutex(g_event_mutex);
+    	for (int i = 0; i < mEventList.size(); i++)
+    	{
+    		Event &e = mEventList[i];
+    		switch (e.type)
+    		{
+    		case eKeyEventType:
+    			mClient->onKeyEvent(e.arg1, e.arg2);
+    			break;
+    		case eMousePosEventType:
+    			mClient->onMouseMoveEvent(e.arg1, e.arg2);
+    			break;
+    		case eMouseButtonEventType:
+    			mClient->onMouseButtonEvent(e.arg1, e.arg2);
+    			break;
+    		case eMouseWheelEventType:
+    			mClient->onMouseWheelEvent(e.arg1);
+    			break;
+    		case eWindowSizeEventType:
+    			mClient->onSize(e.arg1, e.arg2);
+    			break;
+    		}
+    	}
+    	mEventList.clear();
+    	glfwUnlockMutex(g_event_mutex);
+
+    	//
+        // update
         //
         float dt = glfwGetTime() - ftime;
         mClient->onUpdate(dt);
         ftime = glfwGetTime();
 
         //
-        //draw
+        // draw
         //
         glClearColor(0.2, 0.2, 0.2, 1.0);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -175,4 +186,16 @@ int AppServer::run(AppClient *client)
     }
 
     return 0;
+}
+
+void AppServer::sendEvent(EventType type, int arg1, int arg2)
+{
+	glfwLockMutex(g_event_mutex);
+	mEventList.push_back(Event(type, arg1, arg2));
+	glfwUnlockMutex(g_event_mutex);
+}
+
+void AppServer::close()
+{
+	glfwCloseWindow();
 }

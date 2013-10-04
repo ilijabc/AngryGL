@@ -12,6 +12,7 @@
 
 #include <time.h>
 #include <list>
+#include <vector>
 
 #ifdef DEBUG
 #define LOG(msg, args...) printf("[%d] "msg"\n", (int)time(NULL), ##args)

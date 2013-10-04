@@ -10,6 +10,9 @@
 
 #include "app/AppClient.h"
 #include "app/AppServer.h"
+#include "game/GameScene.h"
+
+#include <GL/glfw.h>
 
 class GameClient : public AppClient
 {
@@ -27,6 +30,11 @@ public:
 
 private:
 	GLFont *mFont;
+	GLCamera *mCamera;
+	GameScene *mScene;
+	// Event state
+	int mButtonState[GLFW_MOUSE_BUTTON_LAST + 1];
+	vector3i mMousePos;
 };
 
 #endif /* GAMECLIENT_H_ */

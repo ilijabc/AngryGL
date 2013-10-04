@@ -141,4 +141,10 @@ struct vector3f
 };
 
 
+struct vector3i
+{
+	int x, y, z;
+};
+
+
 #endif // VECTOR3_H
